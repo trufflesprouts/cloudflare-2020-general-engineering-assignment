@@ -22,8 +22,6 @@ async function linksHandler() {
  */
 async function htmlRewriterHandler() {
   const res = await fetch('https://static-links-page.signalnerve.workers.dev')
-  const transformer = new HTMLRewriter()
-    .on('div#links', new LinksTransformer(links))
   return await transformer.transform(res)
 }
 
@@ -50,6 +48,70 @@ const links = [
   },
 ]
 
+const social = [
+  {
+    name: 'Projects',
+    url: 'https://abe.pink/code',
+    svg: 'https://simpleicons.org/icons/javascript.svg',
+  },
+  {
+    name: 'Instagram',
+    url: 'https://www.instagram.com/abe.baali/',
+    svg: 'https://simpleicons.org/icons/instagram.svg',
+  },
+  {
+    name: 'Github',
+    url: 'https://github.com/trufflesprouts/',
+    svg: 'https://simpleicons.org/icons/github.svg',
+  },
+  {
+    name: 'Linkedin',
+    url: 'https://www.linkedin.com/in/abe-baali/',
+    svg: 'https://simpleicons.org/icons/linkedin.svg',
+  },
+  {
+    name: 'Unsplash',
+    url: 'https://unsplash.com/@abe_baali',
+    svg: 'https://simpleicons.org/icons/unsplash.svg',
+  },
+]
+
+/**
+ * Transformers
+ */
+
+// Changes page title.
+class TitleTransformer {
+  async element(element) {
+    element.setInnerContent("Abe Baali's Wonderful Page")
+  }
+}
+
+// Displays the profile element.
+class ProfileTransformer {
+  async element(element) {
+    element.removeAttribute('style')
+  }
+}
+
+// Sets the avatar picture.
+class AvatarTransformer {
+  async element(element) {
+    element.setAttribute(
+      'src',
+      'https://avatars1.githubusercontent.com/u/22350261?s=460&u=ea0d1a44504af6ca3bf1693ec08e3b3dad44625e&v=4',
+    )
+  }
+}
+
+// Changes name.
+class NameTransformer {
+  async element(element) {
+    element.setInnerContent('Abe "Hire Me" Baali')
+  }
+}
+
+// Adds links.
 class LinksTransformer {
   async element(element) {
     const listitems = links
@@ -61,3 +123,36 @@ class LinksTransformer {
     element.setInnerContent(listitems, { html: true })
   }
 }
+
+// Adds social links.
+class SocialTransformer {
+  async element(element) {
+    element.removeAttribute('style')
+    const socialitems = social
+      .map(
+        (link) =>
+          `<a href=${link.url} target="_blank" rel="noopener noreferrer"><img src=${link.svg} alt=${link.name}></a>`,
+      )
+      .join('')
+    element.setInnerContent(socialitems, { html: true })
+  }
+}
+
+// Change background color
+class BodyTransformer {
+  async element(element) {
+    element.setAttribute(
+      'style',
+      'background: linear-gradient(0, #ffffff, #943d81);',
+    )
+  }
+}
+
+const transformer = new HTMLRewriter()
+  .on('title', new TitleTransformer())
+  .on('div#profile', new ProfileTransformer())
+  .on('img#avatar', new AvatarTransformer())
+  .on('h1#name', new NameTransformer())
+  .on('div#links', new LinksTransformer(links))
+  .on('div#social', new SocialTransformer(social))
+  .on('body', new BodyTransformer())
