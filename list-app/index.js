@@ -2,7 +2,8 @@
  * Main router
  */
 addEventListener('fetch', (event) => {
-  event.respondWith(linksHandler())
+  if (event.request.url.endsWith('/links')) event.respondWith(linksHandler())
+  else event.respondWith(htmlRewriterHandler())
 })
 
 /**
@@ -13,6 +14,17 @@ async function linksHandler() {
   const headers = { 'Content-Type': 'application/json' }
   const json = JSON.stringify(links)
   return new Response(json, { status: 200, headers })
+}
+
+/**
+ * Handle every route other than /links
+ * Responds with an HTML page
+ */
+async function htmlRewriterHandler() {
+  const res = await fetch('https://static-links-page.signalnerve.workers.dev')
+  const transformer = new HTMLRewriter()
+    .on('div#links', new LinksTransformer(links))
+  return await transformer.transform(res)
 }
 
 /**
@@ -37,3 +49,15 @@ const links = [
       'https://www.youtube.com/watch?v=GZHVVDcL6Fg&list=LLfQLLACtKf2-Y48FcKnDn7Q&index=4&t=1s',
   },
 ]
+
+class LinksTransformer {
+  async element(element) {
+    const listitems = links
+      .map(
+        (link) =>
+          `<a href=${link.url} target="_blank" rel="noopener noreferrer">${link.name}</a>`,
+      )
+      .join('')
+    element.setInnerContent(listitems, { html: true })
+  }
+}
