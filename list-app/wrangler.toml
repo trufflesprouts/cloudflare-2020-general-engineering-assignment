@@ -1,0 +1,6 @@
+name = "list-app"
+type = "javascript"
+account_id = "200abd7f1e9645f6dfc11037243c0f7c"
+workers_dev = true
+route = ""
+zone_id = ""
